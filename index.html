@@ -353,6 +353,7 @@
 			}
 
 			.table-container {
+				position: relative;
 				overflow: auto;
 				max-height: 65vh;
 				max-width: 100%;
@@ -528,6 +529,41 @@
 			.remove-col svg {
 				width: 14px;
 				height: 14px;
+			}
+
+			.preferred-row {
+				background: rgba(99, 102, 241, 0.08);
+				position: relative;
+			}
+
+			.preferred-row td {
+				border-bottom-color: rgba(99, 102, 241, 0.2);
+			}
+
+			.alpha-cell-content {
+				display: flex;
+				gap: 0.5rem;
+				flex-wrap: wrap;
+			}
+
+			.preferred-badge {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.3rem;
+				background: var(--accent);
+				color: white;
+				font-size: 0.7rem;
+				padding: 0.2rem 0.5rem;
+				border-radius: 4px;
+				font-weight: 600;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				/* margin-left: 0.5rem; */
+			}
+
+			.preferred-badge svg {
+				width: 12px;
+				height: 12px;
 			}
 		</style>
 	</head>
@@ -955,17 +991,32 @@
 				});
 
 				els.tableBody.innerHTML = "";
+				let firstValidRowIndex = null;
+				let validRowCount = 0;
+				const rows = [];
+
 				for (let alphaPercent = 0; alphaPercent <= 100; alphaPercent += 2.5) {
 					const a = alphaPercent / 100;
 					const tr = document.createElement("tr");
 
+					const base = calculateBaseColor(state.resultColor, state.originalBg, a);
+
+					// Track first valid row for scrolling and highlight first 3 valid rows
+					if (base.isValid) {
+						if (firstValidRowIndex === null) {
+							firstValidRowIndex = rows.length;
+						}
+						validRowCount++;
+						if (validRowCount <= 3) {
+							tr.classList.add("preferred-row");
+						}
+					}
+
 					const tdAlpha = document.createElement("td");
 					tdAlpha.style.fontWeight = "600";
 					tdAlpha.style.color = "var(--text-main)";
-					tdAlpha.textContent = `${alphaPercent}%`;
+					tdAlpha.innerHTML = `<span class="alpha-cell-content">${alphaPercent}%${base.isValid && validRowCount <= 3 ? '<span class="preferred-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Recommended</span>' : ""}</span>`;
 					tr.appendChild(tdAlpha);
-
-					const base = calculateBaseColor(state.resultColor, state.originalBg, a);
 
 					// Add base color column (without alpha)
 					const tdBase = document.createElement("td");
@@ -1025,7 +1076,26 @@
 						}
 						tr.appendChild(td);
 					});
+
+					rows.push(tr);
 					els.tableBody.appendChild(tr);
+				}
+
+				// Scroll to first valid row within the table container
+				if (firstValidRowIndex !== null) {
+					// Use setTimeout to ensure DOM is rendered
+					setTimeout(() => {
+						const tableContainer = document.querySelector(".table-container");
+						const firstValidRow = rows[firstValidRowIndex];
+						console.log("firstValidRow", firstValidRow);
+						const rowTop = firstValidRow.offsetTop;
+						const headerHeight =
+							document.querySelector("#results-table thead").offsetHeight;
+
+						// Scroll the table container to show the first valid row just below the header
+						console.log("Scrolling to:", rowTop, headerHeight, rowTop - headerHeight);
+						tableContainer.scrollTop = rowTop - headerHeight;
+					}, 50);
 				}
 
 				document.querySelectorAll(".remove-col").forEach((btn) => {
