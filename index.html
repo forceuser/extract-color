@@ -5,6 +5,10 @@
 		<meta
 			name="viewport"
 			content="width=device-width, initial-scale=1.0" />
+		<link
+			rel="icon"
+			type="image/svg+xml"
+			href="/extract-color/favicon.svg" />
 		<title>Color Alpha Extractor</title>
 		<style>
 			:root {
@@ -565,6 +569,32 @@
 				width: 12px;
 				height: 12px;
 			}
+
+			.hide-invalid-checkbox {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				cursor: pointer;
+				user-select: none;
+			}
+
+			.hide-invalid-checkbox input[type="checkbox"] {
+				cursor: pointer;
+				width: 18px;
+				height: 18px;
+			}
+
+			.hide-invalid-checkbox label {
+				cursor: pointer;
+				margin: 0;
+				font-size: 0.9rem;
+				color: var(--text-main);
+				font-weight: 500;
+			}
+
+			.invalid-row {
+				display: none;
+			}
 		</style>
 	</head>
 	<body>
@@ -809,6 +839,13 @@
 							</button>
 						</div>
 					</div>
+					<div class="hide-invalid-checkbox">
+						<input
+							type="checkbox"
+							id="hide-invalid-checkbox"
+							checked />
+						<label for="hide-invalid-checkbox">Hide invalid rows</label>
+					</div>
 				</div>
 
 				<div class="table-container">
@@ -849,6 +886,7 @@
 				originalBg: "#ffffff",
 				columns: ["#ffffff", "#000000"],
 				format: "hexa",
+				hideInvalid: true,
 			};
 
 			function loadState() {
@@ -885,6 +923,7 @@
 				toast: document.getElementById("toast"),
 				eyeDropperRes: document.getElementById("eyedropper-result"),
 				eyeDropperBg: document.getElementById("eyedropper-bg"),
+				hideInvalidCheckbox: document.getElementById("hide-invalid-checkbox"),
 
 				// Canvas elements
 				imgUpload: document.getElementById("image-upload"),
@@ -1010,6 +1049,8 @@
 						if (validRowCount <= 3) {
 							tr.classList.add("preferred-row");
 						}
+					} else if (state.hideInvalid) {
+						tr.classList.add("invalid-row");
 					}
 
 					const tdAlpha = document.createElement("td");
@@ -1084,18 +1125,19 @@
 				// Scroll to first valid row within the table container
 				if (firstValidRowIndex !== null) {
 					// Use setTimeout to ensure DOM is rendered
-					setTimeout(() => {
+
+					const updateScroll = () => {
 						const tableContainer = document.querySelector(".table-container");
 						const firstValidRow = rows[firstValidRowIndex];
-						console.log("firstValidRow", firstValidRow);
 						const rowTop = firstValidRow.offsetTop;
 						const headerHeight =
 							document.querySelector("#results-table thead").offsetHeight;
 
 						// Scroll the table container to show the first valid row just below the header
-						console.log("Scrolling to:", rowTop, headerHeight, rowTop - headerHeight);
 						tableContainer.scrollTop = rowTop - headerHeight;
-					}, 50);
+					};
+					setTimeout(updateScroll, 50);
+					updateScroll();
 				}
 
 				document.querySelectorAll(".remove-col").forEach((btn) => {
@@ -1113,6 +1155,7 @@
 				els.resHex.value = state.resultColor;
 				els.bgPicker.value = state.originalBg;
 				els.bgHex.value = state.originalBg;
+				els.hideInvalidCheckbox.checked = state.hideInvalid;
 			}
 
 			function copyToClipboard(text) {
@@ -1303,6 +1346,12 @@
 					updateTable();
 					saveState();
 				}
+			});
+
+			els.hideInvalidCheckbox.addEventListener("change", (e) => {
+				state.hideInvalid = e.target.checked;
+				updateTable();
+				saveState();
 			});
 
 			// Initialize
