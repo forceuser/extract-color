@@ -33,7 +33,28 @@
 				--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
 				--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
 
-				color-scheme: light dark;
+				color-scheme: dark;
+			}
+
+			[data-theme="light"] {
+				/* Modern Light Theme Palette */
+				--bg-page: #f8f9fa;
+				--bg-panel: #ffffff;
+				--bg-input: #f8f9fa;
+				--bg-hover: #e9ecef;
+				--border: #dee2e6;
+				--border-hover: #adb5bd;
+				--text-main: #212529;
+				--text-muted: #6c757d;
+				--accent: #6366f1;
+				--accent-hover: #4f46e5;
+				--accent-alpha: rgba(99, 102, 241, 0.1);
+				--danger: #dc3545;
+				--danger-bg: rgba(220, 53, 69, 0.1);
+				--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+				--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+
+				color-scheme: light;
 			}
 
 			* {
@@ -69,6 +90,56 @@
 				text-align: center;
 				margin-bottom: 1.5rem;
 				padding-top: 1rem;
+				position: relative;
+			}
+
+			.theme-switcher {
+				position: absolute;
+				top: 1rem;
+				right: 0;
+				display: flex;
+				gap: 0.5rem;
+				background: var(--bg-panel);
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+				padding: 0.25rem;
+			}
+
+			@media (max-width: 768px) {
+				.theme-switcher {
+					position: static;
+					justify-content: center;
+					margin-bottom: 1rem;
+				}
+			}
+
+			.theme-btn {
+				background: transparent;
+				border: none;
+				color: var(--text-muted);
+				width: 36px;
+				height: 36px;
+				border-radius: var(--radius-sm);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+
+			.theme-btn:hover {
+				background: var(--bg-hover);
+				color: var(--text-main);
+			}
+
+			.theme-btn.active {
+				background: var(--accent);
+				color: white;
+			}
+
+			.theme-btn svg {
+				width: 20px;
+				height: 20px;
 			}
 
 			header h1 {
@@ -76,7 +147,16 @@
 				font-weight: 800;
 				margin-bottom: 0.5rem;
 				letter-spacing: -0.02em;
+			}
+
+			[data-theme="dark"] header h1 {
 				background: linear-gradient(135deg, #fff, #a5a9b5);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			[data-theme="light"] header h1 {
+				background: linear-gradient(135deg, #1a1a1a, #6c757d);
 				-webkit-background-clip: text;
 				-webkit-text-fill-color: transparent;
 			}
@@ -600,6 +680,109 @@
 	<body>
 		<div class="container">
 			<header>
+				<div class="theme-switcher">
+					<button
+						class="theme-btn"
+						data-theme="light"
+						title="Light Mode">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round">
+							<circle
+								cx="12"
+								cy="12"
+								r="5"></circle>
+							<line
+								x1="12"
+								y1="1"
+								x2="12"
+								y2="3"></line>
+							<line
+								x1="12"
+								y1="21"
+								x2="12"
+								y2="23"></line>
+							<line
+								x1="4.22"
+								y1="4.22"
+								x2="5.64"
+								y2="5.64"></line>
+							<line
+								x1="18.36"
+								y1="18.36"
+								x2="19.78"
+								y2="19.78"></line>
+							<line
+								x1="1"
+								y1="12"
+								x2="3"
+								y2="12"></line>
+							<line
+								x1="21"
+								y1="12"
+								x2="23"
+								y2="12"></line>
+							<line
+								x1="4.22"
+								y1="19.78"
+								x2="5.64"
+								y2="18.36"></line>
+							<line
+								x1="18.36"
+								y1="5.64"
+								x2="19.78"
+								y2="4.22"></line>
+						</svg>
+					</button>
+					<button
+						class="theme-btn active"
+						data-theme="auto"
+						title="System Theme">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round">
+							<rect
+								x="2"
+								y="3"
+								width="20"
+								height="14"
+								rx="2"
+								ry="2"></rect>
+							<line
+								x1="8"
+								y1="21"
+								x2="16"
+								y2="21"></line>
+							<line
+								x1="12"
+								y1="17"
+								x2="12"
+								y2="21"></line>
+						</svg>
+					</button>
+					<button
+						class="theme-btn"
+						data-theme="dark"
+						title="Dark Mode">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round">
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+						</svg>
+					</button>
+				</div>
 				<h1>Color Alpha Extractor</h1>
 				<p>
 					Calculate the exact semi-transparent base color needed to achieve your target
@@ -887,6 +1070,7 @@
 				columns: ["#ffffff", "#000000"],
 				format: "hexa",
 				hideInvalid: true,
+				theme: "auto",
 			};
 
 			function loadState() {
@@ -1156,6 +1340,25 @@
 				els.bgPicker.value = state.originalBg;
 				els.bgHex.value = state.originalBg;
 				els.hideInvalidCheckbox.checked = state.hideInvalid;
+				applyTheme();
+			}
+
+			function applyTheme() {
+				const effectiveTheme =
+					state.theme === "auto"
+						? window.matchMedia("(prefers-color-scheme: dark)").matches
+							? "dark"
+							: "light"
+						: state.theme;
+
+				document.documentElement.setAttribute("data-theme", effectiveTheme);
+				document.querySelectorAll(".theme-btn").forEach((btn) => {
+					if (btn.dataset.theme === state.theme) {
+						btn.classList.add("active");
+					} else {
+						btn.classList.remove("active");
+					}
+				});
 			}
 
 			function copyToClipboard(text) {
@@ -1352,6 +1555,22 @@
 				state.hideInvalid = e.target.checked;
 				updateTable();
 				saveState();
+			});
+
+			// Theme switcher
+			document.querySelectorAll(".theme-btn").forEach((btn) => {
+				btn.addEventListener("click", () => {
+					state.theme = btn.dataset.theme;
+					applyTheme();
+					saveState();
+				});
+			});
+
+			// Listen for system theme changes when auto is selected
+			window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+				if (state.theme === "auto") {
+					applyTheme();
+				}
 			});
 
 			// Initialize
