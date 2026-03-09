@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>Color Alpha Extractor</title>
+		<style>
+			:root {
+				/* Modern Dark Theme Palette */
+				--bg-page: #0f1115;
+				--bg-panel: #181a1f;
+				--bg-input: #0f1115;
+				--bg-hover: #23252b;
+				--border: #2e3036;
+				--border-hover: #454852;
+				--text-main: #f1f3f5;
+				--text-muted: #8b909a;
+				--accent: #6366f1;
+				--accent-hover: #4f46e5;
+				--accent-alpha: rgba(99, 102, 241, 0.15);
+				--danger: #ff6b6b;
+				--danger-bg: rgba(255, 107, 107, 0.1);
+				--radius-lg: 16px;
+				--radius-md: 10px;
+				--radius-sm: 6px;
+				--font: "Inter", system-ui, -apple-system, sans-serif;
+				--shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+				--shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+				color-scheme: light dark;
+			}
+
+			* {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				font-family: var(--font);
+				background-color: var(--bg-page);
+				color: var(--text-main);
+				line-height: 1.5;
+				padding: 2rem;
+				min-height: 100vh;
+
+				@media (width < 920px) {
+					padding: 1rem;
+				}
+			}
+
+			.container {
+				max-width: stretch;
+				margin: 0 auto;
+				display: grid;
+				gap: 2rem;
+				grid-auto-flow: row dense;
+				grid-auto-columns: 100%;
+			}
+
+			/* Header */
+			header {
+				text-align: center;
+				margin-bottom: 1.5rem;
+				padding-top: 1rem;
+			}
+
+			header h1 {
+				font-size: 2.5rem;
+				font-weight: 800;
+				margin-bottom: 0.5rem;
+				letter-spacing: -0.02em;
+				background: linear-gradient(135deg, #fff, #a5a9b5);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+			}
+
+			header p {
+				color: var(--text-muted);
+				font-size: 1.05rem;
+				max-width: 600px;
+				margin: 0 auto;
+			}
+
+			/* Panels */
+			.panel {
+				background-color: var(--bg-panel);
+				border: 1px solid var(--border);
+				border-radius: var(--radius-lg);
+				padding: 2rem;
+				box-shadow: var(--shadow-sm);
+
+				@media (width < 920px) {
+					padding: 1.5rem 1rem;
+				}
+			}
+
+			.controls-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 3rem;
+			}
+
+			@media (max-width: 768px) {
+				.controls-grid {
+					grid-template-columns: 1fr;
+					gap: 2rem;
+				}
+			}
+
+			.form-group {
+				margin-bottom: 1.5rem;
+			}
+
+			.form-group label {
+				display: block;
+				font-size: 0.875rem;
+				font-weight: 500;
+				margin-bottom: 0.6rem;
+				color: var(--text-muted);
+				letter-spacing: 0.01em;
+			}
+
+			/* Unified Input Groups */
+			.input-group {
+				display: flex;
+				align-items: center;
+				background: var(--bg-input);
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+				padding: 4px 6px;
+				transition: all 0.2s ease;
+			}
+
+			.input-group:focus-within {
+				border-color: var(--accent);
+				box-shadow: 0 0 0 3px var(--accent-alpha);
+			}
+
+			.input-group input[type="text"] {
+				flex: 1;
+				background: transparent;
+				border: none;
+				color: var(--text-main);
+				padding: 0.5rem 0.75rem;
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.95rem;
+				outline: none;
+			}
+
+			/* Color Swatch Styling */
+			.color-swatch-wrapper {
+				position: relative;
+				width: 32px;
+				height: 32px;
+				border-radius: var(--radius-sm);
+				overflow: hidden;
+				flex-shrink: 0;
+				margin-left: 2px;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+			}
+
+			input[type="color"] {
+				position: absolute;
+				top: -10px;
+				left: -10px;
+				width: 50px;
+				height: 50px;
+				cursor: pointer;
+				border: none;
+				padding: 0;
+				background: none;
+			}
+
+			/* Dropdown */
+			select {
+				width: 100%;
+				background: var(--bg-input);
+				border: 1px solid var(--border);
+				color: var(--text-main);
+				padding: 0.75rem 1rem;
+				border-radius: var(--radius-md);
+				font-family: var(--font);
+				font-size: 0.95rem;
+				outline: none;
+				appearance: none;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				background-image: url('data:image/svg+xml;utf8,<svg fill="none" stroke="%238b909a" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>');
+				background-repeat: no-repeat;
+				background-position: right 1rem center;
+				background-size: 1.2rem;
+			}
+
+			select:focus {
+				border-color: var(--accent);
+				box-shadow: 0 0 0 3px var(--accent-alpha);
+			}
+
+			/* Buttons */
+			.btn {
+				background: var(--bg-input);
+				border: 1px solid var(--border);
+				color: var(--text-main);
+				padding: 0.6rem 1.2rem;
+				border-radius: var(--radius-md);
+				cursor: pointer;
+				font-weight: 500;
+				font-size: 0.9rem;
+				transition: all 0.2s ease;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				gap: 0.5rem;
+			}
+
+			.btn:hover {
+				background: var(--bg-hover);
+				border-color: var(--border-hover);
+			}
+
+			.btn.primary {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: white;
+			}
+			.btn.primary:hover {
+				background: var(--accent-hover);
+				border-color: var(--accent-hover);
+				box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+			}
+
+			.icon-btn {
+				background: transparent;
+				border: none;
+				color: var(--text-muted);
+				width: 32px;
+				height: 32px;
+				border-radius: var(--radius-sm);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+				transition: all 0.2s ease;
+				margin-right: 4px;
+			}
+
+			.icon-btn:hover {
+				background: var(--bg-hover);
+				color: var(--text-main);
+			}
+
+			.icon-btn svg {
+				width: 18px;
+				height: 18px;
+			}
+
+			/* Image Picker Section */
+			.image-picker-section {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				height: 100%;
+			}
+
+			.dropzone {
+				flex: 1;
+				min-height: 120px;
+				border: 2px dashed var(--border);
+				border-radius: var(--radius-md);
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				background: var(--bg-input);
+				transition: all 0.2s ease;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.dropzone:hover {
+				border-color: var(--border-hover);
+				background: var(--bg-hover);
+			}
+
+			.dropzone.dragover {
+				border-color: var(--accent);
+				background: var(--accent-alpha);
+				box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12);
+			}
+
+			.dropzone-content {
+				text-align: center;
+				color: var(--text-muted);
+				padding: 2rem;
+			}
+
+			.dropzone-content svg {
+				width: 32px;
+				height: 32px;
+				margin-bottom: 0.5rem;
+				opacity: 0.7;
+			}
+
+			#canvas-container {
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				top: 0;
+				left: 0;
+				background: #000
+					url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="10" height="10" fill="%23222"/><rect x="10" y="10" width="10" height="10" fill="%23222"/><rect x="10" width="10" height="10" fill="%23333"/><rect y="10" width="10" height="10" fill="%23333"/></svg>');
+				display: none;
+				overflow: auto;
+			}
+
+			canvas {
+				display: block;
+				cursor: crosshair;
+			}
+
+			.picker-mode {
+				display: flex;
+				gap: 1.5rem;
+				background: var(--bg-input);
+				padding: 0.5rem;
+				border-radius: var(--radius-md);
+				border: 1px solid var(--border);
+				justify-content: center;
+			}
+
+			.picker-mode label {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				cursor: pointer;
+				font-weight: 500;
+				color: var(--text-main);
+				margin: 0;
+			}
+
+			/* Table Area */
+			.table-controls {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-end;
+				margin-bottom: 1.5rem;
+				flex-wrap: wrap;
+				gap: 1rem;
+			}
+
+			.table-container {
+				overflow: auto;
+				max-height: 65vh;
+				max-width: 100%;
+				border: 1px solid var(--border);
+				border-radius: var(--radius-md);
+				background: var(--bg-page);
+
+				scrollbar-gutter: stable;
+				scrollbar-width: thin;
+			}
+
+			table {
+				width: 100%;
+				border-collapse: separate;
+				border-spacing: 0;
+				text-align: left;
+			}
+
+			th,
+			td {
+				padding: 1rem 1.25rem;
+				border-bottom: 1px solid var(--border);
+				border-right: 1px solid var(--border);
+				min-width: 260px;
+			}
+
+			th:first-child,
+			td:first-child {
+				min-width: 110px;
+				width: 110px;
+				position: sticky;
+				left: 0;
+				z-index: 5;
+				background: var(--bg-page);
+			}
+
+			th {
+				background: var(--bg-panel);
+				font-weight: 600;
+				font-size: 0.9rem;
+				color: var(--text-muted);
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				position: sticky;
+				top: 0;
+				z-index: 10;
+			}
+
+			th:first-child {
+				background: var(--bg-panel);
+				z-index: 15;
+			}
+
+			td:last-child,
+			th:last-child {
+				border-right: none;
+			}
+			tr:last-child td {
+				border-bottom: none;
+			}
+
+			.cell-content {
+				display: flex;
+				flex-direction: column;
+				gap: 0.75rem;
+				height: 100%;
+			}
+
+			.color-preview-box {
+				width: 100%;
+				height: 48px;
+				border-radius: var(--radius-sm);
+				position: relative;
+				box-shadow:
+					inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+					0 2px 4px rgba(0, 0, 0, 0.1);
+				overflow: hidden;
+			}
+
+			.color-code {
+				font-family: "JetBrains Mono", monospace;
+				font-size: 0.85rem;
+				background: var(--bg-panel);
+				color: var(--text-main);
+				padding: 0.4rem 0.6rem;
+				border-radius: var(--radius-sm);
+				border: 1px solid var(--border);
+				cursor: pointer;
+				transition: all 0.2s;
+				word-break: break-all;
+				text-align: center;
+			}
+
+			.color-code:hover {
+				border-color: var(--accent);
+				color: var(--accent);
+				background: rgba(99, 102, 241, 0.05);
+			}
+
+			.out-of-bounds {
+				color: var(--danger);
+				background: var(--danger-bg);
+				padding: 0.75rem;
+				border-radius: var(--radius-sm);
+				font-size: 0.85rem;
+				text-align: center;
+				border: 1px solid rgba(255, 107, 107, 0.2);
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+			}
+
+			/* Toast */
+			#toast {
+				position: fixed;
+				bottom: 2rem;
+				left: 50%;
+				transform: translateX(-50%) translateY(100px);
+				background: var(--text-main);
+				color: var(--bg-page);
+				padding: 0.75rem 1.5rem;
+				border-radius: 2rem;
+				font-weight: 600;
+				box-shadow: var(--shadow-md);
+				transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+				z-index: 1000;
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+
+			#toast.show {
+				transform: translateX(-50%) translateY(0);
+			}
+
+			.col-header {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 0.5rem;
+			}
+
+			.col-header span {
+				color: var(--text-main);
+				font-family: monospace;
+				font-size: 1rem;
+				font-weight: normal;
+				background: var(--bg-panel);
+				padding: 0.2rem 0.5rem;
+				border-radius: 4px;
+				border: 1px solid var(--border);
+			}
+
+			.remove-col {
+				background: var(--bg-input);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				color: var(--text-muted);
+				cursor: pointer;
+				width: 24px;
+				height: 24px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: all 0.2s;
+			}
+			.remove-col:hover {
+				color: var(--danger);
+				border-color: var(--danger);
+				background: var(--danger-bg);
+			}
+			.remove-col svg {
+				width: 14px;
+				height: 14px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1>Color Alpha Extractor</h1>
+				<p>
+					Calculate the exact semi-transparent base color needed to achieve your target
+					visual result on any specific background.
+				</p>
+			</header>
+
+			<div class="panel controls-grid">
+				<!-- Inputs Column -->
+				<div>
+					<div class="form-group">
+						<label>1. Target Result (The color you want to see)</label>
+						<div class="input-group">
+							<div class="color-swatch-wrapper">
+								<input
+									type="color"
+									id="result-color-picker"
+									value="#3b82f6" />
+							</div>
+							<input
+								type="text"
+								id="result-color-hex"
+								value="#3b82f6"
+								spellcheck="false" />
+							<button
+								class="icon-btn"
+								id="eyedropper-result"
+								title="Pick from screen">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="m2 22 1-1h3l9-9" />
+									<path d="M3 21v-3l9-9" />
+									<path
+										d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z" />
+								</svg>
+							</button>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>2. Original Background (What it sits on)</label>
+						<div class="input-group">
+							<div class="color-swatch-wrapper">
+								<input
+									type="color"
+									id="bg-color-picker"
+									value="#ffffff" />
+							</div>
+							<input
+								type="text"
+								id="bg-color-hex"
+								value="#ffffff"
+								spellcheck="false" />
+							<button
+								class="icon-btn"
+								id="eyedropper-bg"
+								title="Pick from screen">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="m2 22 1-1h3l9-9" />
+									<path d="M3 21v-3l9-9" />
+									<path
+										d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z" />
+								</svg>
+							</button>
+						</div>
+					</div>
+
+					<div
+						class="form-group"
+						style="margin-bottom: 0">
+						<label>Output CSS Format</label>
+						<select id="output-format">
+							<option value="hexa">HEXA Code (#RRGGBBAA)</option>
+							<option value="rgba">RGBA Function (rgba(r, g, b, a))</option>
+							<option value="color-mix">CSS color-mix()</option>
+							<option value="mixed">Mixed Solid Color (HEX)</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- Image Picker Column -->
+				<div class="image-picker-section">
+					<label
+						style="
+							font-size: 0.875rem;
+							font-weight: 500;
+							color: var(--text-muted);
+							margin-bottom: -0.5rem;
+						"
+						>Pick from Image (Optional)</label
+					>
+
+					<input
+						type="file"
+						id="image-upload"
+						accept="image/*"
+						style="display: none" />
+
+					<div
+						class="dropzone"
+						id="dropzone-area"
+						onclick="document.getElementById('image-upload').click()">
+						<div
+							class="dropzone-content"
+							id="dropzone-content">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round">
+								<rect
+									x="3"
+									y="3"
+									width="18"
+									height="18"
+									rx="2"
+									ry="2" />
+								<circle
+									cx="8.5"
+									cy="8.5"
+									r="1.5" />
+								<polyline points="21 15 16 10 5 21" />
+							</svg>
+							<div>Click to upload image</div>
+						</div>
+
+						<div id="canvas-container">
+							<canvas id="image-canvas"></canvas>
+						</div>
+					</div>
+
+					<div style="display: flex; gap: 0.5rem">
+						<div
+							class="picker-mode"
+							id="picker-mode"
+							style="display: none; flex: 1">
+							<label
+								><input
+									type="radio"
+									name="pick-target"
+									value="result"
+									checked />
+								Pick Result</label
+							>
+							<label
+								><input
+									type="radio"
+									name="pick-target"
+									value="bg" />
+								Pick BG</label
+							>
+						</div>
+						<button
+							class="btn"
+							id="clear-image"
+							style="display: none"
+							title="Clear Image">
+							<svg
+								width="18"
+								height="18"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round">
+								<line
+									x1="18"
+									y1="6"
+									x2="6"
+									y2="18"></line>
+								<line
+									x1="6"
+									y1="6"
+									x2="18"
+									y2="18"></line>
+							</svg>
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<div class="panel">
+				<div class="table-controls">
+					<div
+						class="form-group"
+						style="margin-bottom: 0; flex: 1; max-width: 320px">
+						<label>Add Preview Background</label>
+						<div class="input-group">
+							<div class="color-swatch-wrapper">
+								<input
+									type="color"
+									id="new-col-picker"
+									value="#1a1a1e" />
+							</div>
+							<input
+								type="text"
+								id="new-col-hex"
+								value="#1a1a1e"
+								spellcheck="false" />
+							<button
+								class="icon-btn"
+								id="add-col-btn"
+								title="Add Column"
+								style="color: var(--accent)">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<line
+										x1="12"
+										y1="5"
+										x2="12"
+										y2="19"></line>
+									<line
+										x1="5"
+										y1="12"
+										x2="19"
+										y2="12"></line>
+								</svg>
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="table-container">
+					<table id="results-table">
+						<thead>
+							<tr id="table-head-row">
+								<!-- Populated by JS -->
+							</tr>
+						</thead>
+						<tbody id="table-body">
+							<!-- Populated by JS -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<div id="toast">
+			<svg
+				width="18"
+				height="18"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<polyline points="20 6 9 17 4 12"></polyline>
+			</svg>
+			Copied to clipboard!
+		</div>
+
+		<script>
+			// --- State Management ---
+			const STORAGE_KEY = "colorAlphaExtractor";
+			const defaultState = {
+				resultColor: "#dcf7fd",
+				originalBg: "#ffffff",
+				columns: ["#ffffff", "#000000"],
+				format: "hexa",
+			};
+
+			function loadState() {
+				try {
+					const saved = localStorage.getItem(STORAGE_KEY);
+					if (saved) {
+						const parsed = JSON.parse(saved);
+						return {...defaultState, ...parsed};
+					}
+				} catch (e) {}
+				return {...defaultState};
+			}
+
+			function saveState() {
+				try {
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+				} catch (e) {}
+			}
+
+			const state = loadState();
+
+			// --- DOM Elements ---
+			const els = {
+				resPicker: document.getElementById("result-color-picker"),
+				resHex: document.getElementById("result-color-hex"),
+				bgPicker: document.getElementById("bg-color-picker"),
+				bgHex: document.getElementById("bg-color-hex"),
+				outFormat: document.getElementById("output-format"),
+				addColPicker: document.getElementById("new-col-picker"),
+				addColHex: document.getElementById("new-col-hex"),
+				addColBtn: document.getElementById("add-col-btn"),
+				tableHead: document.getElementById("table-head-row"),
+				tableBody: document.getElementById("table-body"),
+				toast: document.getElementById("toast"),
+				eyeDropperRes: document.getElementById("eyedropper-result"),
+				eyeDropperBg: document.getElementById("eyedropper-bg"),
+
+				// Canvas elements
+				imgUpload: document.getElementById("image-upload"),
+				dropzone: document.getElementById("dropzone-area"),
+				canvasContainer: document.getElementById("canvas-container"),
+				dropzoneContent: document.getElementById("dropzone-content"),
+				canvas: document.getElementById("image-canvas"),
+				ctx: document
+					.getElementById("image-canvas")
+					.getContext("2d", {willReadFrequently: true}),
+				clearImgBtn: document.getElementById("clear-image"),
+				pickerMode: document.getElementById("picker-mode"),
+			};
+
+			// --- Core Logic ---
+			const hexToRgb = (hex) => {
+				hex = hex.replace("#", "");
+				if (hex.length === 3)
+					hex = hex
+						.split("")
+						.map((x) => x + x)
+						.join("");
+				return [
+					parseInt(hex.slice(0, 2), 16),
+					parseInt(hex.slice(2, 4), 16),
+					parseInt(hex.slice(4, 6), 16),
+				];
+			};
+
+			const rgbToHex = (r, g, b) => {
+				return (
+					"#" +
+					[r, g, b]
+						.map((x) => {
+							const h = Math.round(x).toString(16);
+							return h.length === 1 ? "0" + h : h;
+						})
+						.join("")
+				);
+			};
+
+			function calculateBaseColor(resultHex, bgHex, alpha) {
+				const [rR, gR, bR] = hexToRgb(resultHex);
+				const [rB, gB, bB] = hexToRgb(bgHex);
+				const calc = (res, bg, a) => (res - (1 - a) * bg) / a;
+
+				let rU = calc(rR, rB, alpha);
+				let gU = calc(gR, gB, alpha);
+				let bU = calc(bR, bB, alpha);
+
+				const isValid =
+					rU >= -5 && rU <= 260 && gU >= -5 && gU <= 260 && bU >= -5 && bU <= 260;
+
+				rU = Math.max(0, Math.min(255, Math.round(rU)));
+				gU = Math.max(0, Math.min(255, Math.round(gU)));
+				bU = Math.max(0, Math.min(255, Math.round(bU)));
+
+				return {r: rU, g: gU, b: bU, a: alpha, isValid};
+			}
+
+			function formatColor(base, format, colHex) {
+				const {r, g, b, a} = base;
+				if (format === "hexa") {
+					const alphaHex = Math.round(a * 255)
+						.toString(16)
+						.padStart(2, "0");
+					return `${rgbToHex(r, g, b)}${alphaHex}`;
+				} else if (format === "rgba") {
+					const cleanA = Math.round(a * 100) / 100;
+					return `rgba(${r}, ${g}, ${b}, ${cleanA})`;
+				} else if (format === "color-mix") {
+					const aPercent = Math.round(a * 100);
+					return `color-mix(in srgb, ${rgbToHex(r, g, b)} ${aPercent}%, transparent)`;
+				} else if (format === "mixed" && colHex) {
+					const [bgR, bgG, bgB] = hexToRgb(colHex);
+					const mixedR = Math.round(r * a + bgR * (1 - a));
+					const mixedG = Math.round(g * a + bgG * (1 - a));
+					const mixedB = Math.round(b * a + bgB * (1 - a));
+					return rgbToHex(mixedR, mixedG, mixedB);
+				}
+			}
+
+			function ensureValidHex(hex, fallback) {
+				const valid = /^#([0-9A-F]{3}){1,2}$/i.test(hex);
+				return valid ? hex : fallback;
+			}
+
+			// --- UI Updates ---
+			function updateTable() {
+				els.tableHead.innerHTML = `<th>Alpha Step</th>`;
+				state.columns.forEach((col, idx) => {
+					const th = document.createElement("th");
+					th.innerHTML = `
+                <div class="col-header">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        Preview on
+                        <div class="header-color-swatch" style="width: 18px; height: 18px; border-radius: 4px; background-color: ${col}; border: 1px solid rgba(255,255,255,0.15);"></div>
+                        <span>${col}</span>
+                    </div>
+                    ${idx >= 2 ? `<button class="remove-col" data-idx="${idx}" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>` : ""}
+                </div>
+            `;
+					els.tableHead.appendChild(th);
+				});
+
+				els.tableBody.innerHTML = "";
+				for (let alphaPercent = 0; alphaPercent <= 100; alphaPercent += 2.5) {
+					const a = alphaPercent / 100;
+					const tr = document.createElement("tr");
+
+					const tdAlpha = document.createElement("td");
+					tdAlpha.style.fontWeight = "600";
+					tdAlpha.style.color = "var(--text-main)";
+					tdAlpha.textContent = `${alphaPercent}%`;
+					tr.appendChild(tdAlpha);
+
+					const base = calculateBaseColor(state.resultColor, state.originalBg, a);
+
+					state.columns.forEach((colHex) => {
+						const td = document.createElement("td");
+						if (!base.isValid) {
+							td.innerHTML = `<div class="out-of-bounds"><strong>Out of bounds</strong><span style="opacity: 0.8; margin-top: 4px;">Impossible to reach result</span></div>`;
+						} else {
+							const previewBox = document.createElement("div");
+							previewBox.className = "color-preview-box";
+							previewBox.style.backgroundColor = colHex;
+
+							const innerOverlay = document.createElement("div");
+							innerOverlay.style.width = "100%";
+							innerOverlay.style.height = "100%";
+							innerOverlay.style.backgroundColor = `rgba(${base.r}, ${base.g}, ${base.b}, ${base.a})`;
+							previewBox.appendChild(innerOverlay);
+
+							const colorString = formatColor(base, state.format, colHex);
+
+							const codeLabel = document.createElement("div");
+							codeLabel.className = "color-code";
+							codeLabel.textContent = colorString;
+							codeLabel.title = "Click to copy";
+							codeLabel.onclick = () => copyToClipboard(colorString);
+
+							const container = document.createElement("div");
+							container.className = "cell-content";
+							container.appendChild(previewBox);
+							container.appendChild(codeLabel);
+
+							td.appendChild(container);
+						}
+						tr.appendChild(td);
+					});
+					els.tableBody.appendChild(tr);
+				}
+
+				document.querySelectorAll(".remove-col").forEach((btn) => {
+					btn.addEventListener("click", (e) => {
+						const idx = parseInt(e.currentTarget.dataset.idx);
+						state.columns.splice(idx, 1);
+						updateTable();
+						saveState();
+					});
+				});
+			}
+
+			function syncInputs() {
+				els.resPicker.value = state.resultColor;
+				els.resHex.value = state.resultColor;
+				els.bgPicker.value = state.originalBg;
+				els.bgHex.value = state.originalBg;
+			}
+
+			function copyToClipboard(text) {
+				const ta = document.createElement("textarea");
+				ta.value = text;
+				ta.style.position = "fixed";
+				ta.style.opacity = "0";
+				document.body.appendChild(ta);
+				ta.select();
+				try {
+					document.execCommand("copy");
+					showToast();
+				} catch (err) {
+					console.error("Failed to copy text", err);
+				}
+				document.body.removeChild(ta);
+			}
+
+			function showToast() {
+				els.toast.classList.add("show");
+				setTimeout(() => els.toast.classList.remove("show"), 2000);
+			}
+
+			function loadImageFile(file) {
+				if (!file || !file.type.startsWith("image/")) return;
+
+				const reader = new FileReader();
+				reader.onload = (event) => {
+					const img = new Image();
+					img.onload = () => {
+						els.canvasContainer.style.display = "block";
+						const containerWidth = els.canvasContainer.clientWidth;
+						const scale = Math.min(1, containerWidth / img.width);
+						els.canvas.width = img.width * scale;
+						els.canvas.height = img.height * scale;
+
+						els.ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+						els.ctx.drawImage(img, 0, 0, els.canvas.width, els.canvas.height);
+
+						els.dropzoneContent.style.display = "none";
+						els.pickerMode.style.display = "flex";
+						els.clearImgBtn.style.display = "flex";
+					};
+					img.src = event.target.result;
+				};
+				reader.readAsDataURL(file);
+			}
+
+			// --- Native EyeDropper Support ---
+			if (!window.EyeDropper) {
+				els.eyeDropperRes.style.display = "none";
+				els.eyeDropperBg.style.display = "none";
+			} else {
+				const picker = new EyeDropper();
+
+				els.eyeDropperRes.addEventListener("click", async () => {
+					try {
+						const result = await picker.open();
+						state.resultColor = result.sRGBHex;
+						syncInputs();
+						updateTable();
+					} catch (e) {}
+				});
+
+				els.eyeDropperBg.addEventListener("click", async () => {
+					try {
+						const result = await picker.open();
+						state.originalBg = result.sRGBHex;
+						syncInputs();
+						updateTable();
+					} catch (e) {}
+				});
+			}
+
+			// --- Image Canvas Picker Logic ---
+			els.imgUpload.addEventListener("change", (e) => {
+				const file = e.target.files[0];
+				loadImageFile(file);
+			});
+
+			["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+				els.dropzone.addEventListener(eventName, (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+				});
+			});
+
+			let dragCounter = 0;
+
+			els.dropzone.addEventListener("dragenter", (e) => {
+				dragCounter++;
+				els.dropzone.classList.add("dragover");
+			});
+
+			els.dropzone.addEventListener("dragleave", (e) => {
+				dragCounter--;
+				if (dragCounter === 0) {
+					els.dropzone.classList.remove("dragover");
+				}
+			});
+
+			els.dropzone.addEventListener("drop", (e) => {
+				dragCounter = 0;
+				els.dropzone.classList.remove("dragover");
+
+				const file = Array.from(e.dataTransfer.files || []).find((item) =>
+					item.type.startsWith("image/")
+				);
+				if (!file) return;
+
+				els.imgUpload.files = e.dataTransfer.files;
+				loadImageFile(file);
+			});
+
+			els.clearImgBtn.addEventListener("click", (e) => {
+				e.stopPropagation(); // prevent triggering upload again
+				els.imgUpload.value = "";
+				els.canvasContainer.style.display = "none";
+				els.dropzoneContent.style.display = "block";
+				els.pickerMode.style.display = "none";
+				els.clearImgBtn.style.display = "none";
+				els.ctx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+			});
+
+			els.canvas.addEventListener("click", (e) => {
+				e.stopPropagation(); // prevent triggering upload again
+				const rect = els.canvas.getBoundingClientRect();
+				const x = Math.floor(e.clientX - rect.left);
+				const y = Math.floor(e.clientY - rect.top);
+
+				const pixel = els.ctx.getImageData(x, y, 1, 1).data;
+				const hex = rgbToHex(pixel[0], pixel[1], pixel[2]);
+
+				const target = document.querySelector('input[name="pick-target"]:checked').value;
+				if (target === "result") {
+					state.resultColor = hex;
+				} else {
+					state.originalBg = hex;
+				}
+				syncInputs();
+				updateTable();
+				saveState();
+			});
+
+			// --- Event Listeners ---
+			els.resPicker.addEventListener("input", (e) => {
+				state.resultColor = e.target.value;
+				els.resHex.value = state.resultColor;
+				updateTable();
+				saveState();
+			});
+			els.resHex.addEventListener("change", (e) => {
+				state.resultColor = ensureValidHex(e.target.value, state.resultColor);
+				syncInputs();
+				updateTable();
+				saveState();
+			});
+
+			els.bgPicker.addEventListener("input", (e) => {
+				state.originalBg = e.target.value;
+				els.bgHex.value = state.originalBg;
+				updateTable();
+				saveState();
+			});
+			els.bgHex.addEventListener("change", (e) => {
+				state.originalBg = ensureValidHex(e.target.value, state.originalBg);
+				syncInputs();
+				updateTable();
+				saveState();
+			});
+
+			els.outFormat.addEventListener("change", (e) => {
+				state.format = e.target.value;
+				updateTable();
+				saveState();
+			});
+
+			els.addColPicker.addEventListener("input", (e) => {
+				els.addColHex.value = e.target.value;
+			});
+			els.addColHex.addEventListener("change", (e) => {
+				els.addColPicker.value = ensureValidHex(e.target.value, "#000000");
+			});
+			els.addColBtn.addEventListener("click", () => {
+				const newCol = ensureValidHex(els.addColHex.value, "#000000");
+				if (!state.columns.includes(newCol)) {
+					state.columns.push(newCol);
+					updateTable();
+					saveState();
+				}
+			});
+
+			// Initialize
+			syncInputs();
+			updateTable();
+		</script>
+	</body>
+</html>
