@@ -938,7 +938,7 @@
 
 			// --- UI Updates ---
 			function updateTable() {
-				els.tableHead.innerHTML = `<th>Alpha Step</th>`;
+				els.tableHead.innerHTML = `<th>Alpha Step</th><th>Base Color (No Alpha)</th>`;
 				state.columns.forEach((col, idx) => {
 					const th = document.createElement("th");
 					th.innerHTML = `
@@ -966,6 +966,32 @@
 					tr.appendChild(tdAlpha);
 
 					const base = calculateBaseColor(state.resultColor, state.originalBg, a);
+
+					// Add base color column (without alpha)
+					const tdBase = document.createElement("td");
+					if (!base.isValid) {
+						tdBase.innerHTML = `<div class="out-of-bounds"><strong>Out of bounds</strong><span style="opacity: 0.8; margin-top: 4px;">Impossible to reach result</span></div>`;
+					} else {
+						const baseColorHex = rgbToHex(base.r, base.g, base.b);
+
+						const previewBox = document.createElement("div");
+						previewBox.className = "color-preview-box";
+						previewBox.style.backgroundColor = baseColorHex;
+
+						const codeLabel = document.createElement("div");
+						codeLabel.className = "color-code";
+						codeLabel.textContent = baseColorHex;
+						codeLabel.title = "Click to copy";
+						codeLabel.onclick = () => copyToClipboard(baseColorHex);
+
+						const container = document.createElement("div");
+						container.className = "cell-content";
+						container.appendChild(previewBox);
+						container.appendChild(codeLabel);
+
+						tdBase.appendChild(container);
+					}
+					tr.appendChild(tdBase);
 
 					state.columns.forEach((colHex) => {
 						const td = document.createElement("td");
